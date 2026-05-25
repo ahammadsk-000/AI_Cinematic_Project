@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cineforge-ai-engine"
+version = "0.1.0"
+description = "Cineforge — pure, web-free generative pipeline library for cinematic AI video."
+requires-python = ">=3.10"
+# NOTE: only lightweight deps live here. Heavy GPU deps (torch, diffusers,
+# transformers, TTS, audiocraft) are installed on the GPU box via the
+# notebooks / gpu_worker requirements, NOT pulled into the CPU control plane.
+dependencies = [
+    "pydantic>=2.6",
+    "httpx>=0.27",        # talk to ComfyUI / Ollama HTTP APIs
+    "pillow>=10.0",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# installed only where a GPU exists (Colab/Kaggle/local worker)
+gpu = [
+    "torch",
+    "diffusers>=0.27",
+    "transformers>=4.40",
+    "accelerate>=0.30",
+    "safetensors",
+    "audiocraft",         # MusicGen
+    "TTS",                # Coqui / XTTS v2
+    "imageio-ffmpeg",
+    "moviepy>=1.0.3",
+]
+dev = ["pytest>=8.0", "ruff>=0.4"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ai_engine*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"

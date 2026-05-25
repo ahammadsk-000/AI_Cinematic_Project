@@ -1,0 +1,53 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# --- env & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- local dev databases (created by the launcher) ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- storage / artifacts / model weights (large, regenerable) ---
+storage/uploads/*
+storage/outputs/*
+storage/models/*
+storage/cache/*
+!storage/**/.gitkeep
+*.safetensors
+*.ckpt
+*.pth
+*.mp4
+*.wav
+*.png
+!docs/**/*.png
+
+# --- ComfyUI runtime (installed on the GPU box, not committed) ---
+comfyui/ComfyUI/
+comfyui/models/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

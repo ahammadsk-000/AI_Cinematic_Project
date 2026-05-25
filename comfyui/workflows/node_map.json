@@ -1,0 +1,27 @@
+{
+  "_comment": "Logical-name -> (node_id, input_key) map so the backend injects values without hardcoding IDs in Python. One file per workflow; keys are stable across workflow variants (txt2img, ipadapter, animatediff).",
+  "sdxl_txt2img": {
+    "positive": ["6", "text"],
+    "negative": ["7", "text"],
+    "width": ["5", "width"],
+    "height": ["5", "height"],
+    "batch_size": ["5", "batch_size"],
+    "seed": ["3", "seed"],
+    "steps": ["3", "steps"],
+    "cfg": ["3", "cfg"],
+    "checkpoint": ["4", "ckpt_name"],
+    "filename_prefix": ["9", "filename_prefix"],
+    "save_node": "9"
+  },
+  "animatediff": {
+    "init_image": ["10", "image"],
+    "positive": ["2", "text"],
+    "negative": ["3", "text"],
+    "frames": ["7", "batch_size"],
+    "width": ["7", "width"],
+    "height": ["7", "height"],
+    "fps": ["6", "frame_rate"],
+    "seed": ["5", "seed"],
+    "save_node": "6"
+  }
+}

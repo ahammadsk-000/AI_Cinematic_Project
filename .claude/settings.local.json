@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import ast,glob; [ast.parse\\(open\\(f,encoding='utf-8'\\).read\\(\\),f\\) for f in glob.glob\\('apps/api/**/*.py',recursive=True\\)]; print\\('AST OK: all backend modules parse'\\)\")",
+      "Bash(python -m venv .venv)",
+      "Bash(.venv/Scripts/python.exe -m pip install -q --disable-pip-version-check fastapi uvicorn[standard] 'pydantic>=2.6' pydantic-settings python-jose[cryptography] passlib[bcrypt] python-multipart 'sqlalchemy>=2.0' aiosqlite alembic celery redis httpx sse-starlette pytest email-validator)"
+    ]
+  }
+}

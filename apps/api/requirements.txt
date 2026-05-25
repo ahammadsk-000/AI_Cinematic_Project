@@ -1,0 +1,24 @@
+# Cineforge backend (CPU control plane). NO torch / diffusers / transformers here —
+# the GPU worker installs those separately (see gpu_worker/requirements.txt).
+fastapi>=0.111
+uvicorn[standard]>=0.30
+pydantic>=2.6
+pydantic-settings>=2.2
+
+# auth
+python-jose[cryptography]>=3.3
+bcrypt>=4.1            # used directly (passlib is unmaintained / breaks on bcrypt 5.x)
+python-multipart>=0.0.9
+
+# db
+sqlalchemy>=2.0
+asyncpg>=0.29
+alembic>=1.13
+
+# queue / cache
+celery>=5.3
+redis>=5.0
+
+# misc
+httpx>=0.27
+sse-starlette>=2.1     # server-sent events for live progress

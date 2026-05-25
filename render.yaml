@@ -1,0 +1,34 @@
+# Render Blueprint for the Cineforge CPU control plane (free tier).
+# Deploy: push to GitHub, then New → Blueprint in Render and point at this file.
+#
+# Note: the GPU worker is NOT here — it runs on Colab/Kaggle/local and connects
+# back to the same Redis + Postgres. Postgres is on Supabase and Redis on Upstash
+# (both free); set their URLs as secrets below.
+services:
+  - type: web
+    name: cineforge-api
+    runtime: docker
+    dockerfilePath: ./docker/api.Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: prod
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true            # Render generates a strong secret
+      - key: DATABASE_URL
+        sync: false                    # paste your Supabase pooled connection string
+      - key: REDIS_URL
+        sync: false                    # Upstash rediss URL, db /0
+      - key: CELERY_BROKER_URL
+        sync: false                    # Upstash rediss URL, db /1
+      - key: CELERY_RESULT_BACKEND
+        sync: false                    # Upstash rediss URL, db /2
+      - key: CORS_ORIGINS
+        sync: false                    # e.g. ["https://your-app.vercel.app"]
+      - key: STORAGE_ROOT
+        value: /app/storage

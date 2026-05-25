@@ -1,0 +1,27 @@
+# GPU worker deps. Installed ONLY on the GPU box (Colab/Kaggle/local) — never in
+# the CPU control plane. Install alongside:  pip install -e packages/ai_engine[gpu]
+
+# queue + db (sync) + redis
+celery>=5.3
+redis>=5.0
+sqlalchemy>=2.0
+psycopg2-binary>=2.9     # sync Postgres driver for the worker
+
+# the shared ORM schema lives in apps/api/app/models — put apps/api on PYTHONPATH
+pydantic>=2.6
+pydantic-settings>=2.2
+
+# heavy AI stack (also covered by packages/ai_engine[gpu])
+torch
+diffusers>=0.27
+transformers>=4.40
+accelerate>=0.30
+safetensors
+audiocraft               # MusicGen
+TTS                      # Coqui / XTTS v2
+insightface              # face-embedding for character consistency (optional)
+onnxruntime-gpu          # insightface backend
+imageio-ffmpeg           # bundled ffmpeg binary for compose/animation
+httpx>=0.27
+pillow
+numpy

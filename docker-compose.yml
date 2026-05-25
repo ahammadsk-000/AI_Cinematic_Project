@@ -1,0 +1,62 @@
+# Local-first deployment. The control plane (postgres, redis, api, web) runs here.
+# The GPU worker is intentionally NOT in this file — it runs on the GPU box
+# (local PC with GPU, or Colab/Kaggle via the Phase 6 notebooks) and connects
+# back to this Redis. Uncomment the `worker` service only if you have a local GPU.
+
+name: cineforge
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cineforge
+      POSTGRES_PASSWORD: cineforge
+      POSTGRES_DB: cineforge
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cineforge"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: { context: ., dockerfile: docker/api.Dockerfile }   # added in Phase 2
+    env_file: [.env]
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    volumes: ["./storage:/app/storage"]
+    profiles: ["full"]          # `docker compose --profile full up` once Phase 2 lands
+
+  web:
+    build: { context: ./apps/web, dockerfile: ../../docker/web.Dockerfile }  # Phase 3
+    env_file: [.env]
+    ports: ["3000:3000"]
+    depends_on: [api]
+    profiles: ["full"]
+
+  # --- OPTIONAL: only if you have a local NVIDIA GPU. Colab/Kaggle use notebooks. ---
+  # worker:
+  #   build: { context: ., dockerfile: docker/worker.Dockerfile }   # Phase 5
+  #   env_file: [.env]
+  #   depends_on: [redis]
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }]
+  #   volumes: ["./storage:/app/storage"]
+  #   profiles: ["gpu"]
+
+volumes:
+  pgdata:
