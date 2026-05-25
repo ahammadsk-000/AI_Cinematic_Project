@@ -21,6 +21,9 @@ script or story idea, break it into a sequence of distinct visual SCENES for an 
 
 Return STRICT JSON only, no prose, in exactly this shape:
 {{
+  "character": "ONE fixed, detailed physical description of the main recurring subject \
+(age, ethnicity, face shape, eyes, hair, clothing, distinguishing features). This exact \
+description must apply to EVERY scene so the same person is rendered each time.",
   "scenes": [
     {{
       "summary": "one sentence describing what happens in the shot",
@@ -38,6 +41,8 @@ Return STRICT JSON only, no prose, in exactly this shape:
 }}
 
 Rules:
+- "character" is mandatory: derive it from the script's main subject and keep it
+  IDENTICAL for the whole video (this is how we keep the same face across scenes).
 - Produce between 3 and {max_scenes} scenes. Keep visual continuity between them.
 - The visual style is "{style}". Bias every scene toward that aesthetic.
 - Keep each field concise (a phrase, not a paragraph).

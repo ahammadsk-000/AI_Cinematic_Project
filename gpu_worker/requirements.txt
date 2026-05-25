@@ -19,6 +19,7 @@ accelerate>=0.30
 safetensors
 audiocraft               # MusicGen
 coqui-tts                # Coqui XTTS v2 fork (supports Python 3.12; import TTS)
+gtts                     # multilingual TTS incl. Telugu/Hindi (works on py3.12, no GPU)
 insightface              # face-embedding for character consistency (optional)
 onnxruntime-gpu          # insightface backend
 imageio-ffmpeg           # bundled ffmpeg binary for compose/animation

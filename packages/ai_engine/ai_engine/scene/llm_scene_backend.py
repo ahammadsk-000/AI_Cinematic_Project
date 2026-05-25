@@ -62,6 +62,9 @@ class LLMSceneBackend(SceneBackend):
         items = data.get("scenes") if isinstance(data, dict) else None
         if not isinstance(items, list):
             return []
+        # The fixed character description, applied identically to every scene so the
+        # same subject is rendered each time (face-consistency anchor).
+        character = str(data.get("character", "")).strip() if isinstance(data, dict) else ""
         scenes: list[Scene] = []
         for i, it in enumerate(items[:max_scenes]):
             if not isinstance(it, dict):
@@ -86,6 +89,7 @@ class LLMSceneBackend(SceneBackend):
                     sound_effects=[str(s) for s in sfx],
                     narration=str(it.get("narration", "")).strip(),
                     duration_sec=max(1.0, min(10.0, duration)),
+                    meta={"character": character},
                 )
             )
         return scenes

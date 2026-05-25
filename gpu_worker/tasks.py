@@ -8,6 +8,7 @@ re-queued (acks_late) and the orchestrator resumes from the manifest checkpoint.
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 
 from ai_engine.config import load_config
@@ -29,11 +30,18 @@ _ASPECT_DIMS = {
 }
 
 
-def _generation_config(engine_cfg, style: str, aspect: str) -> GenerationConfig:
+def _generation_config(engine_cfg, style: str, aspect: str, job_id: str = "") -> GenerationConfig:
     style_mode = StyleMode(style)
     ar = AspectRatio(aspect)
     w, h = _ASPECT_DIMS[ar]
-    cfg = GenerationConfig(style=style_mode, aspect_ratio=ar, width=w, height=h, vram_budget_gb=engine_cfg.vram_budget_gb)
+    # Fixed per-job seed: every scene uses the SAME seed so SDXL renders a
+    # consistent subject across shots (face-consistency lever). Deterministic
+    # from job_id so different videos still vary.
+    seed = (int(hashlib.sha1(job_id.encode()).hexdigest(), 16) % (2**31)) if job_id else 12345
+    cfg = GenerationConfig(
+        style=style_mode, aspect_ratio=ar, width=w, height=h,
+        seed=seed, vram_budget_gb=engine_cfg.vram_budget_gb,
+    )
     # auto-tune to the detected GPU so we size the job before it can OOM
     tier = detect_tier()
     apply_tier(cfg, tier)
@@ -72,7 +80,7 @@ def run_generation(job_id: str) -> str:
         job_id=job_id,
         script=script,
         workdir=workdir,
-        config=_generation_config(engine_cfg, style, aspect),
+        config=_generation_config(engine_cfg, style, aspect, job_id),
         report=reporter,
     )
 

@@ -16,9 +16,12 @@ log = get_logger("prompt")
 
 class TemplatePromptEnhancer(PromptEnhancer):
     def enhance(self, scene: Scene, *, style: StyleMode) -> Scene:
-        # Order matters for SDXL: subject/action first, then environment, then
+        # Order matters for SDXL: the fixed character anchor FIRST (so the same
+        # subject is rendered every scene), then subject/action, environment,
         # camera + lighting modifiers, then the style suffix.
+        character = (scene.meta or {}).get("character", "")
         parts = [
+            character,
             scene.summary,
             scene.environment,
             scene.camera,
