@@ -24,7 +24,10 @@ class JobCancelled(Exception):
 
 #: a job's heartbeat key auto-expires after this many seconds of worker silence;
 #: the backend reaper re-queues jobs whose heartbeat has vanished (dead worker).
-HEARTBEAT_TTL_S = 120
+#: Set generously: individual stages can block for minutes (slow LLM/diffusion on a
+#: free GPU) without emitting a tick, and that must NOT be mistaken for a dead worker
+#: (a false re-queue spawns a duplicate run).
+HEARTBEAT_TTL_S = 900
 
 
 def _channel(job_id: str) -> str:

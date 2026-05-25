@@ -115,12 +115,19 @@ def run_generation(job_id: str) -> str:
 
     with session_scope() as s:
         job = s.get(Job, uuid.UUID(job_id))
-        _persist_scenes(s, job, ctx.scenes, SceneRow)
-        _persist_assets(s, job, ctx, Asset, AssetKind, job_id)
         job.status = JobStatus.COMPLETED
         job.progress_pct = 100.0
         job.current_stage = "compose"
-        job.result_path = media_path
+        # Only overwrite results when THIS run actually produced a video. A resumed
+        # run (all stages skipped from the manifest, e.g. a duplicate enqueue) has no
+        # final artifact — never clobber a previously-good result_path with None.
+        if media_path:
+            _persist_scenes(s, job, ctx.scenes, SceneRow)
+            _persist_assets(s, job, ctx, Asset, AssetKind, job_id)
+            job.result_path = media_path
+        else:
+            media_path = job.result_path  # keep the existing URL
+            log.info("job %s resumed with no new artifacts; keeping result_path=%s", job_id, media_path)
 
     reporter.clear_heartbeat()
     reporter.publish(status="completed", stage="compose", pct=100, message="Your video is ready")
