@@ -42,6 +42,10 @@ Rules:
 - The visual style is "{style}". Bias every scene toward that aesthetic.
 - Keep each field concise (a phrase, not a paragraph).
 - duration_sec should be 3-6 seconds per scene.
+- NARRATION: if the script already contains explicit voice-over / narration lines
+  (e.g. quoted text, or lines tagged with timestamps like "(0-3s)"), copy them
+  VERBATIM into the matching scene's "narration" field, preserving the ORIGINAL
+  language and wording exactly. Only invent narration when the script provides none.
 - Output ONLY the JSON object."""
 
 
