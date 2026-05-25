@@ -117,14 +117,17 @@ class FFmpegComposer(Composer):
         aspect_ratio: AspectRatio = AspectRatio.WIDE,
         out_path: Optional[Path] = None,
     ) -> Artifact:
+        # Resolve to absolute so the concat list + outputs don't depend on CWD.
+        self.output_dir = Path(self.output_dir).resolve()
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_path or (self.output_dir / "final.mp4")
+        out_path = Path(out_path).resolve() if out_path else (self.output_dir / "final.mp4")
         ordered = sorted(clips, key=lambda c: c.scene_index or 0)
 
-        # 1) concat clips
+        # 1) concat clips. ffmpeg's concat demuxer resolves relative entries against
+        # the LIST FILE's directory, so we must write ABSOLUTE clip paths here.
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, dir=self.output_dir) as f:
             for c in ordered:
-                f.write(f"file '{c.path.as_posix()}'\n")
+                f.write(f"file '{c.path.resolve().as_posix()}'\n")
             list_file = Path(f.name)
         concat_out = self.output_dir / "_concat.mp4"
         subprocess.run(self.build_concat_command(list_file, concat_out), check=True, capture_output=True)
@@ -132,12 +135,12 @@ class FFmpegComposer(Composer):
         # 2) single combined narration track (concat of per-scene wavs), if any
         narration_track = self._concat_audio(narration) if narration else None
 
-        # 3) mux video + audio + subtitles, fit aspect ratio
+        # 3) mux video + audio + subtitles, fit aspect ratio (absolute paths)
         cmd = self.build_mux_command(
             concat_out, out_path,
             narration=narration_track,
-            music=music.path if music else None,
-            subtitles=subtitles.path if subtitles else None,
+            music=music.path.resolve() if music else None,
+            subtitles=subtitles.path.resolve() if subtitles else None,
             dims=_DIMS[aspect_ratio],
         )
         subprocess.run(cmd, check=True, capture_output=True)
@@ -149,7 +152,7 @@ class FFmpegComposer(Composer):
     def _concat_audio(self, tracks: list[Artifact]) -> Path:
         with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, dir=self.output_dir) as f:
             for t in sorted(tracks, key=lambda a: a.scene_index or 0):
-                f.write(f"file '{t.path.as_posix()}'\n")
+                f.write(f"file '{t.path.resolve().as_posix()}'\n")
             list_file = Path(f.name)
         out = self.output_dir / "_narration.wav"
         subprocess.run(
