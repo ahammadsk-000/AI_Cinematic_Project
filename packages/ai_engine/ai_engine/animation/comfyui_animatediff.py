@@ -79,24 +79,41 @@ class ComfyUIAnimateDiffBackend(AnimationBackend):
             node_id, key = mapping
             graph[node_id]["inputs"][key] = value
 
-    def build_graph(self, image: Artifact, scene: Scene, cfg: GenerationConfig) -> dict:
+    def build_graph(self, init_image_name: str, scene: Scene, cfg: GenerationConfig) -> dict:
         assert self._template is not None
         graph = copy.deepcopy(self._template)
         graph.pop("_meta", None)
         seed = cfg.seed if cfg.seed is not None else random.randint(0, 2**32 - 1)
-        self._set(graph, "init_image", image.path.name)   # ComfyUI LoadImage by name
+        self._set(graph, "init_image", init_image_name)    # ComfyUI-side filename
         self._set(graph, "positive", scene.prompt)
         self._set(graph, "negative", scene.negative_prompt)
         self._set(graph, "frames", cfg.frames_per_clip)
         self._set(graph, "fps", cfg.fps)
+        self._set(graph, "width", cfg.width)
+        self._set(graph, "height", cfg.height)
         self._set(graph, "seed", seed)
         self._set(graph, "motion", scene.motion or scene.camera)
         return graph
 
+    @retry(attempts=3, backoff=2.0, exceptions=(httpx.HTTPError,))
+    def _upload_image(self, path: Path) -> str:
+        """Upload the still to ComfyUI's input folder so LoadImage can read it.
+        Returns the (possibly de-duplicated) filename ComfyUI stored it under."""
+        with httpx.Client(timeout=60.0) as client:
+            with open(path, "rb") as f:
+                resp = client.post(
+                    f"{self.server_url}/upload/image",
+                    files={"image": (path.name, f, "image/png")},
+                    data={"overwrite": "true"},
+                )
+            resp.raise_for_status()
+            return resp.json()["name"]
+
     def animate(self, image: Artifact, scene: Scene, cfg: GenerationConfig) -> Artifact:
         if not self._loaded:
             self.load()
-        graph = self.build_graph(image, scene, cfg)
+        init_name = self._upload_image(image.path)   # SVD/AnimateDiff img2vid needs the image inside ComfyUI
+        graph = self.build_graph(init_name, scene, cfg)
         prompt_id = self._queue(graph)
         meta = self._await_output(prompt_id)
         out_path = self._download(meta, scene)

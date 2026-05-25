@@ -264,14 +264,28 @@ def test_animatediff_graph_injection():
 
     be = ComfyUIAnimateDiffBackend("http://fake:8188")
     be.load_workflow()
-    img = Artifact(path=Path("img_0.png"), kind="image", scene_index=0)
     scene = Scene(index=0, summary="x", prompt="a cat", negative_prompt="dog", motion="pan left")
-    graph = be.build_graph(img, scene, GenerationConfig(frames_per_clip=16, fps=12, seed=7))
+    graph = be.build_graph("img_0.png", scene, GenerationConfig(frames_per_clip=16, fps=12, seed=7))
     assert graph["10"]["inputs"]["image"] == "img_0.png"
     assert graph["2"]["inputs"]["text"] == "a cat"
     assert graph["7"]["inputs"]["batch_size"] == 16
     assert graph["6"]["inputs"]["frame_rate"] == 12
     assert graph["5"]["inputs"]["seed"] == 7
+
+
+def test_svd_graph_injection():
+    from ai_engine.animation.comfyui_animatediff import ComfyUIAnimateDiffBackend
+
+    be = ComfyUIAnimateDiffBackend("http://fake:8188", workflow="svd")
+    be.load_workflow()
+    scene = Scene(index=0, summary="x")
+    graph = be.build_graph("frame.png", scene, GenerationConfig(width=1024, height=576, fps=8, seed=11))
+    assert graph["10"]["inputs"]["image"] == "frame.png"   # uploaded still injected
+    assert graph["3"]["inputs"]["width"] == 1024
+    assert graph["3"]["inputs"]["height"] == 576
+    assert graph["6"]["inputs"]["frame_rate"] == 8
+    assert graph["5"]["inputs"]["seed"] == 11
+    assert graph["3"]["inputs"]["video_frames"] == 14      # SVD native length, not overridden
 
 
 # --------------------------------------------------------------------------- #

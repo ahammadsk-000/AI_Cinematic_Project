@@ -76,10 +76,14 @@ def build_character_engine(_cfg: EngineConfig) -> CharacterEngine:
 # --- animation ------------------------------------------------------------ #
 def build_animation_backend(cfg: EngineConfig) -> AnimationBackend:
     log.info("animation backend -> %s", cfg.animation_backend)
+    if cfg.animation_backend == "svd":
+        from ai_engine.animation.comfyui_animatediff import ComfyUIAnimateDiffBackend
+
+        return ComfyUIAnimateDiffBackend(cfg.comfyui_url, workflow="svd")  # real motion (img2vid)
     if cfg.animation_backend == "comfyui":
         from ai_engine.animation.comfyui_animatediff import ComfyUIAnimateDiffBackend
 
-        return ComfyUIAnimateDiffBackend.from_config(cfg)
+        return ComfyUIAnimateDiffBackend.from_config(cfg)  # AnimateDiff (workflow=animatediff)
     if cfg.animation_backend in ("kenburns", "ffmpeg"):
         from ai_engine.animation.kenburns_backend import KenBurnsAnimationBackend
 

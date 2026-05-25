@@ -23,5 +23,13 @@
     "fps": ["6", "frame_rate"],
     "seed": ["5", "seed"],
     "save_node": "6"
+  },
+  "svd": {
+    "init_image": ["10", "image"],
+    "width": ["3", "width"],
+    "height": ["3", "height"],
+    "fps": ["6", "frame_rate"],
+    "seed": ["5", "seed"],
+    "save_node": "6"
   }
 }
