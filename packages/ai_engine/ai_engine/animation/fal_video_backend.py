@@ -89,6 +89,9 @@ class FalVideoBackend(AnimationBackend):
     def _submit(self, payload: dict) -> dict:
         with httpx.Client(timeout=60.0) as client:
             resp = client.post(f"{_QUEUE_BASE}/{self.model}", json=payload, headers=self._headers())
+            if resp.status_code >= 400:
+                # surface fal's actual reason (e.g. "Exhausted balance", bad key, bad model)
+                log.error("fal %s on %s -> %s", resp.status_code, self.model, resp.text[:400])
             resp.raise_for_status()
             return resp.json()   # {request_id, status_url, response_url, ...}
 
