@@ -27,7 +27,9 @@ def _sync_url_with_ssl(url: str) -> str:
     u = make_url(url)
     if u.host in _LOCAL_HOSTS or "sslmode" in (u.query or {}):
         return url
-    return str(u.set(query={**u.query, "sslmode": "require"}))
+    # NOTE: str(url)/render_as_string() default to hide_password=True, replacing
+    # the password with '***' which breaks auth. Must pass hide_password=False.
+    return u.set(query={**u.query, "sslmode": "require"}).render_as_string(hide_password=False)
 
 
 _cfg = load_worker_config()
