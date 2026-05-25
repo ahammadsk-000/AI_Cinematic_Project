@@ -8,6 +8,7 @@ than crashing the whole pipeline.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import re
 
@@ -21,6 +22,11 @@ log = get_logger("scene")
 
 # Match the first {...} block even if the model wraps it in prose / markdown fences.
 _JSON_BLOCK = re.compile(r"\{.*\}", re.DOTALL)
+
+# Explicit narration/voice-over lines a user writes in the script, in straight or
+# curly quotes. We extract these verbatim (preserving language, e.g. Telugu) rather
+# than trusting the LLM to reproduce them — far more reliable for non-English.
+_QUOTED = re.compile(r'[“"”‘’\'](.{2,}?)[“"”‘’\']', re.DOTALL)
 
 
 class LLMSceneBackend(SceneBackend):
@@ -39,8 +45,34 @@ class LLMSceneBackend(SceneBackend):
         if not scenes:
             log.warning("LLM produced no usable scenes; falling back to a single scene")
             scenes = [Scene(index=0, summary=script.strip()[:200], environment=script.strip()[:200])]
+
+        # If the user wrote explicit quoted narration lines, trust THEM over the LLM:
+        # build one scene per line (verbatim narration), reusing the LLM's visuals.
+        narration_lines = self._extract_narration(script)
+        if len(narration_lines) >= 2:
+            scenes = self._align_to_narration(scenes, narration_lines, max_scenes=max_scenes)
+            log.info("using %d explicit narration line(s) from the script", len(narration_lines))
+
         log.info("scene backend produced %d scene(s)", len(scenes))
         return scenes
+
+    @staticmethod
+    def _extract_narration(script: str) -> list[str]:
+        """Pull quoted voice-over lines from the script, verbatim (any language)."""
+        lines = [m.strip() for m in _QUOTED.findall(script)]
+        # keep lines that read like narration: long enough AND (multi-word OR non-ASCII)
+        return [ln for ln in lines if len(ln) >= 3 and (" " in ln or any(ord(c) > 127 for c in ln))]
+
+    @staticmethod
+    def _align_to_narration(scenes: list[Scene], lines: list[str], *, max_scenes: int) -> list[Scene]:
+        """Make one scene per narration line, each carrying the exact line. Reuses the
+        LLM scenes' visuals (cycling if there are more lines than scenes)."""
+        lines = lines[:max_scenes]
+        out: list[Scene] = []
+        for i, line in enumerate(lines):
+            base = scenes[i] if i < len(scenes) else scenes[-1]
+            out.append(dataclasses.replace(base, index=i, narration=line, duration_sec=3.0))
+        return out
 
     @staticmethod
     def _parse(raw: str) -> dict:
