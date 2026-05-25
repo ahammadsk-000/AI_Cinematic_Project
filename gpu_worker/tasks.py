@@ -95,7 +95,15 @@ def run_generation(job_id: str) -> str:
 
     # --- persist results ---
     final = (ctx.artifacts.get("final") or [None])[0]
-    media_path = f"/media/outputs/{job_id}/{final.path.name}" if final else None
+    media_path = None
+    if final:
+        # Prefer shared cloud storage (so the web app, on a different machine, can
+        # actually serve it). Fall back to the local /media path if not configured.
+        from gpu_worker import storage_upload
+
+        media_path = storage_upload.upload(final.path, f"outputs/{job_id}/{final.path.name}")
+        if media_path is None:
+            media_path = f"/media/outputs/{job_id}/{final.path.name}"
 
     with session_scope() as s:
         job = s.get(Job, uuid.UUID(job_id))
