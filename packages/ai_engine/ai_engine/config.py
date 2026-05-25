@@ -43,6 +43,7 @@ class EngineConfig:
     voice_backend: str = field(default_factory=lambda: _env("CINEFORGE_VOICE_BACKEND", "xtts"))
     voice_lang: str = field(default_factory=lambda: _env("CINEFORGE_VOICE_LANG", "en"))
     music_backend: str = field(default_factory=lambda: _env("CINEFORGE_MUSIC_BACKEND", "musicgen"))
+    music_dir: str = field(default_factory=lambda: _env("CINEFORGE_MUSIC_DIR", "assets/music"))
 
     # --- compose ---
     composer: str = field(default_factory=lambda: _env("CINEFORGE_COMPOSER", "ffmpeg"))

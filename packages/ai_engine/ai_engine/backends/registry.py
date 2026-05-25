@@ -101,6 +101,11 @@ def build_voice_backend(cfg: EngineConfig) -> VoiceBackend:
 
 # --- music ---------------------------------------------------------------- #
 def build_music_backend(cfg: EngineConfig) -> MusicBackend:
+    log.info("music backend -> %s", cfg.music_backend)
+    if cfg.music_backend in ("library", "procedural"):
+        from ai_engine.music.library_backend import LibraryMusicBackend
+
+        return LibraryMusicBackend.from_config(cfg)
     from ai_engine.music.musicgen_backend import MusicGenBackend
 
     return MusicGenBackend.from_config(cfg)
