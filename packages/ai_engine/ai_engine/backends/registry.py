@@ -89,6 +89,11 @@ def build_animation_backend(cfg: EngineConfig) -> AnimationBackend:
 
 # --- voice ---------------------------------------------------------------- #
 def build_voice_backend(cfg: EngineConfig) -> VoiceBackend:
+    log.info("voice backend -> %s (lang=%s)", cfg.voice_backend, cfg.voice_lang)
+    if cfg.voice_backend == "gtts":
+        from ai_engine.voice.gtts_backend import GTTSBackend
+
+        return GTTSBackend.from_config(cfg)
     from ai_engine.voice.xtts_backend import XTTSBackend
 
     return XTTSBackend.from_config(cfg)
