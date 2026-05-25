@@ -76,6 +76,10 @@ def build_character_engine(_cfg: EngineConfig) -> CharacterEngine:
 # --- animation ------------------------------------------------------------ #
 def build_animation_backend(cfg: EngineConfig) -> AnimationBackend:
     log.info("animation backend -> %s", cfg.animation_backend)
+    if cfg.animation_backend == "fal":  # OPTIONAL paid img2vid (Kling/Hailuo via fal.ai)
+        from ai_engine.animation.fal_video_backend import FalVideoBackend
+
+        return FalVideoBackend.from_config(cfg)
     if cfg.animation_backend == "svd":
         from ai_engine.animation.comfyui_animatediff import ComfyUIAnimateDiffBackend
 
