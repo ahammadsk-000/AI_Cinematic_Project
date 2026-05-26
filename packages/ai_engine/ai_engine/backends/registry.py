@@ -43,6 +43,7 @@ def build_prompt_enhancer(_cfg: EngineConfig) -> PromptEnhancer:
 _IMAGE_BUILDERS = {
     "comfyui": lambda cfg: _comfyui_image(cfg),
     "diffusers": lambda cfg: _diffusers_image(cfg),
+    "fal-flux": lambda cfg: _fal_flux_image(cfg),  # OPTIONAL paid Flux stills via fal.ai
 }
 
 
@@ -58,6 +59,12 @@ def _comfyui_image(cfg: EngineConfig) -> ImageBackend:
     from ai_engine.image.comfyui_backend import ComfyUIImageBackend
 
     return ComfyUIImageBackend.from_config(cfg)
+
+
+def _fal_flux_image(cfg: EngineConfig) -> ImageBackend:
+    from ai_engine.image.fal_image_backend import FalImageBackend
+
+    return FalImageBackend.from_config(cfg)
 
 
 def _diffusers_image(cfg: EngineConfig) -> ImageBackend:
