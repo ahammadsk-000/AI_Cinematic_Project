@@ -31,5 +31,14 @@
     "fps": ["6", "frame_rate"],
     "seed": ["5", "seed"],
     "save_node": "6"
+  },
+  "flux_txt2img": {
+    "positive": ["6", "text"],
+    "width": ["5", "width"],
+    "height": ["5", "height"],
+    "seed": ["3", "seed"],
+    "steps": ["3", "steps"],
+    "filename_prefix": ["9", "filename_prefix"],
+    "save_node": "9"
   }
 }

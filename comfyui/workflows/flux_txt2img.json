@@ -1,0 +1,50 @@
+{
+  "_meta": {
+    "title": "Cineforge Flux txt2img (free local, fp8)",
+    "description": "FLUX.1-dev fp8 text-to-image — runs FREE on a T4 via ComfyUI (--lowvram). Far better cartoon/character stills than base SDXL. Requires the all-in-one fp8 checkpoint at models/checkpoints/flux1-dev-fp8.safetensors (Comfy-Org repackage). Flux is guidance-distilled: cfg=1.0 + a FluxGuidance node (node 26); negative (node 7) stays empty. Injection map (node_map.json -> flux_txt2img): positive=6, width/height=5, seed/steps=3, filename=9.",
+    "format": "comfyui-api"
+  },
+  "4": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": { "ckpt_name": "flux1-dev-fp8.safetensors" }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "PLACEHOLDER_POSITIVE", "clip": ["4", 1] }
+  },
+  "7": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "", "clip": ["4", 1] }
+  },
+  "26": {
+    "class_type": "FluxGuidance",
+    "inputs": { "guidance": 3.5, "conditioning": ["6", 0] }
+  },
+  "5": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": { "width": 1024, "height": 576, "batch_size": 1 }
+  },
+  "3": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 0,
+      "steps": 20,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "model": ["4", 0],
+      "positive": ["26", 0],
+      "negative": ["7", 0],
+      "latent_image": ["5", 0]
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["3", 0], "vae": ["4", 2] }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": { "images": ["8", 0], "filename_prefix": "cineforge" }
+  }
+}

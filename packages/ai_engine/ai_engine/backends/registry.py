@@ -43,7 +43,8 @@ def build_prompt_enhancer(_cfg: EngineConfig) -> PromptEnhancer:
 _IMAGE_BUILDERS = {
     "comfyui": lambda cfg: _comfyui_image(cfg),
     "diffusers": lambda cfg: _diffusers_image(cfg),
-    "fal-flux": lambda cfg: _fal_flux_image(cfg),  # OPTIONAL paid Flux stills via fal.ai
+    "fal-flux": lambda cfg: _fal_flux_image(cfg),        # OPTIONAL paid Flux stills via fal.ai
+    "comfyui-flux": lambda cfg: _comfyui_flux_image(cfg),  # FREE local Flux fp8 via ComfyUI (T4)
 }
 
 
@@ -59,6 +60,13 @@ def _comfyui_image(cfg: EngineConfig) -> ImageBackend:
     from ai_engine.image.comfyui_backend import ComfyUIImageBackend
 
     return ComfyUIImageBackend.from_config(cfg)
+
+
+def _comfyui_flux_image(cfg: EngineConfig) -> ImageBackend:
+    from ai_engine.image.comfyui_backend import ComfyUIImageBackend
+
+    # reuse the same pure-HTTP backend, just point it at the Flux workflow
+    return ComfyUIImageBackend(cfg.comfyui_url, workflow="flux_txt2img")
 
 
 def _fal_flux_image(cfg: EngineConfig) -> ImageBackend:
