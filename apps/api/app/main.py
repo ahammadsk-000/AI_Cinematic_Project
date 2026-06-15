@@ -28,11 +28,12 @@ log = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log.info("Starting %s [env=%s]", settings.app_name, settings.environment)
-    if settings.environment == "dev":
-        # Dev convenience: create tables on boot. Prod uses Alembic migrations.
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        log.info("Dev DB schema ensured (create_all).")
+    # Ensure the schema exists on boot. There are no Alembic migration scripts
+    # yet, so create_all is the bootstrap in every environment. It is idempotent
+    # (creates only missing tables; never drops or alters), so it is safe in prod.
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    log.info("DB schema ensured (create_all).")
 
     # Start the stalled-job reaper (re-queues jobs whose GPU worker died).
     reaper_task: asyncio.Task | None = None
