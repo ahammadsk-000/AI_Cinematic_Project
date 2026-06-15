@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 // Deployed on Vercel (root dir: apps/web); proxies /api and /media to the Render backend.
+// Build triggered after connecting the GitHub repo to the Vercel project.
 const nextConfig = {
   reactStrictMode: true,
   // Allow loading generated artifacts (images/video thumbnails) served by the API.
