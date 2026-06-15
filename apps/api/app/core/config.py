@@ -10,7 +10,7 @@ import json
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -66,6 +66,18 @@ class Settings(BaseSettings):
     # --- engine handoff (the worker reads these too) ---
     comfyui_url: str = "http://127.0.0.1:8188"
     ollama_host: str = "http://localhost:11434"
+
+    @model_validator(mode="after")
+    def _fill_celery_from_redis(self) -> "Settings":
+        # On free Redis (e.g. Upstash, single DB 0) the broker, result backend,
+        # and pub/sub all share one URL. If the Celery URLs are blank/unset (a
+        # common deploy mistake — only REDIS_URL gets filled in), fall back to
+        # REDIS_URL so enqueueing doesn't crash with "No such transport: ''".
+        if not (self.celery_broker_url or "").strip():
+            self.celery_broker_url = self.redis_url
+        if not (self.celery_result_backend or "").strip():
+            self.celery_result_backend = self.redis_url
+        return self
 
 
 @lru_cache
