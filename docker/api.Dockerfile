@@ -14,4 +14,5 @@ COPY apps/api/ ./
 RUN mkdir -p /app/storage
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Honor Render's injected $PORT in prod; default to 8000 for local compose.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
