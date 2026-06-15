@@ -6,11 +6,12 @@ GPU-related; it only enqueues jobs and reads progress/results.
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -26,7 +27,25 @@ class Settings(BaseSettings):
     secret_key: str = Field(default="CHANGE_ME_IN_ENV", description="JWT signing key")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
-    cors_origins: list[str] = ["http://localhost:3000"]
+    # NoDecode: don't let pydantic-settings JSON-parse the raw env value — our
+    # validator below accepts JSON list, comma-separated, OR a single bare URL,
+    # so a value like CORS_ORIGINS=https://x.vercel.app won't crash startup.
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, v: object) -> list[str]:
+        if v is None:
+            return ["http://localhost:3000"]
+        if isinstance(v, (list, tuple)):
+            return [str(o).strip() for o in v if str(o).strip()]
+        s = str(v).strip()
+        if not s:
+            return ["http://localhost:3000"]
+        if s.startswith("["):  # JSON list, e.g. ["https://a","https://b"]
+            return [str(o).strip() for o in json.loads(s) if str(o).strip()]
+        # comma-separated or a single bare origin
+        return [o.strip() for o in s.split(",") if o.strip()]
 
     # --- database (Supabase / local Postgres) ---
     database_url: str = "postgresql+asyncpg://cineforge:cineforge@localhost:5432/cineforge"
