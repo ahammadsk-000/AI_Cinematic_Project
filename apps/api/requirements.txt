@@ -2,7 +2,7 @@
 # the GPU worker installs those separately (see gpu_worker/requirements.txt).
 fastapi>=0.111
 uvicorn[standard]>=0.30
-pydantic>=2.6
+pydantic[email]>=2.6   # [email] -> email-validator, required by EmailStr in schemas
 pydantic-settings>=2.2
 
 # auth
